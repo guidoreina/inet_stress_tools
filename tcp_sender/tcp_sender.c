@@ -100,16 +100,16 @@ void usage(const char* program)
          MIN_RECEIVE,
          MAX_RECEIVE,
          DEFAULT_RECEIVE);
-  printf("\t\t--loops <count>: number of iterations send/receive "
-         "(range: %llu - %llu, default: %llu).\n",
+  printf("\t\t--loops <count>:\n");
+  printf("\t\t\tNumber of iterations send/receive (range: %llu - %llu\n",
          MIN_LOOPS,
-         MAX_LOOPS,
-         DEFAULT_LOOPS);
-  printf("\t\t--client-sends-first | --server-sends-first: who sends data "
-         "first? (default: %s).\n",
+         MAX_LOOPS);
+  printf("\t\t\tdefault: %llu).\n", DEFAULT_LOOPS);
+  printf("\t\t--client-sends-first | --server-sends-first:\n");
+  printf("\t\t\tWho sends data first? (default: %s).\n",
          CLIENT_SENDS_FIRST ? "--client-sends-first" : "--server-sends-first");
-  printf("\t\t--set-read-write-event | --do-not-set-read-write-event: should "
-         "both events be set or only one? (default: %s).\n",
+  printf("\t\t--set-read-write-event | --do-not-set-read-write-event:\n");
+  printf("\t\t\tShould both events be set or only one? (default: %s).\n",
          SET_READ_WRITE_EVENT ? "--set-read-write-event" :
                                 "--do-not-set-read-write-event");
   printf("\t\t--processors <processor-list> | \"even\" | \"odd\".\n");
