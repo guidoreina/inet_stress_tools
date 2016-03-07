@@ -174,7 +174,11 @@ void workers_join(workers_t* workers, uint8_t* running)
 
     do {
       clock_gettime(CLOCK_REALTIME, &ts);
-      ts.tv_sec++;
+
+      if ((ts.tv_nsec += 200000000) >= 1000000000) {
+        ts.tv_sec++;
+        ts.tv_nsec -= 1000000000;
+      }
 
       if (pthread_timedjoin_np(worker->thread, NULL, &ts) != 0) {
         timeout.tv_sec = 0;
