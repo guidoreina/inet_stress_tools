@@ -29,7 +29,8 @@ typedef struct {
   unsigned nconnections;
   unsigned nthreads;
   unsigned receive;
-  uint64_t nloops;
+  uint64_t number_thread_loops;
+  uint64_t number_connection_loops;
   int client_sends_first;
   int set_read_write_event;
 

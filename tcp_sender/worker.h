@@ -35,6 +35,9 @@ typedef struct {
   struct epoll_event* events;
   int* fds;
 
+  /* Number of loops. */
+  uint64_t nloops;
+
   /* Number of bytes sent by this worker. */
   uint64_t sent;
 

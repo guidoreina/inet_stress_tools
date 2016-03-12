@@ -89,6 +89,8 @@ int workers_create(const struct sockaddr* addr,
       return -1;
     }
 
+    worker->nloops = 0;
+
     worker->sent = 0;
     worker->received = 0;
 
@@ -175,7 +177,7 @@ void workers_join(workers_t* workers, uint8_t* running)
     do {
       clock_gettime(CLOCK_REALTIME, &ts);
 
-      if ((ts.tv_nsec += 200000000) >= 1000000000) {
+      if ((ts.tv_nsec += 100000000) >= 1000000000) {
         ts.tv_sec++;
         ts.tv_nsec -= 1000000000;
       }
@@ -236,9 +238,10 @@ void workers_statistics(const workers_t* workers)
   for (i = 0; i < workers->nworkers; i++) {
     worker = &workers->workers[i];
 
-    printf("Worker %u: sent: %lu, received: %lu, %u connection%s, %u "
-           "error%s, TX: %s, RX: %s, duration: %s.\n",
+    printf("Worker %u: loops: %lu, sent: %lu, received: %lu, %u connection%s, "
+           "%u error%s, TX: %s, RX: %s, duration: %s.\n",
            worker->id + 1,
+           worker->nloops,
            worker->sent,
            worker->received,
            worker->nconnections,
@@ -334,85 +337,90 @@ int worker_loop(worker_t* worker)
 
   stopwatch_start(&stopwatch);
 
-  /* For each connection... */
-  for (nconnections = 0;
-       (nconnections < worker->nconnections) && (*(worker->running));
-       nconnections++) {
-    /* Connect. */
-    if ((fd = socket_connect(worker->addr, worker->addrlen)) < 0) {
-      worker->duration = stopwatch_stop(&stopwatch);
+  /* For each loop... */
+  for (worker->nloops = 0;
+       (worker->nloops < worker->options->number_thread_loops) && (*(worker->running));
+       worker->nloops++) {
+    /* For each connection... */
+    for (nconnections = 0;
+         (nconnections < worker->nconnections) && (*(worker->running));
+         nconnections++) {
+      /* Connect. */
+      if ((fd = socket_connect(worker->addr, worker->addrlen)) < 0) {
+        worker->duration = stopwatch_stop(&stopwatch);
 
-      for (; nconnections > 0; nconnections--) {
-        close(worker->fds[nconnections - 1]);
-      }
-
-      worker->errors += (worker->nconnections - nconnections);
-
-      return -1;
-    }
-
-    /* Add file descriptor to epoll. */
-    ev.events = EPOLLRDHUP | EPOLLET | worker->options->set_read_write_event ?
-                                         EPOLLIN | EPOLLOUT :
-                                         EPOLLOUT;
-
-    ev.data.u64 = fd;
-
-    if (epoll_ctl(worker->epfd, EPOLL_CTL_ADD, fd, &ev) < 0) {
-      worker->duration = stopwatch_stop(&stopwatch);
-
-      close(fd);
-
-      for (; nconnections > 0; nconnections--) {
-        close(worker->fds[nconnections - 1]);
-      }
-
-      worker->errors += (worker->nconnections - nconnections);
-
-      return -1;
-    }
-
-    /* Save file descriptor. */
-    worker->fds[nconnections] = fd;
-
-    /* Set connection's state. */
-    connections[fd].state = STATE_CONNECTING;
-
-    /* Set connection's index. */
-    connections[fd].index = nconnections;
-  }
-
-  while ((*(worker->running)) && (nconnections > 0)) {
-    /* Wait for events. */
-    nevents = epoll_wait(worker->epfd, worker->events, maxevents, 1000);
-
-    /* Process events. */
-    for (i = 0; i < nevents; i++) {
-      fd = worker->events[i].data.fd;
-      conn = &connections[fd];
-
-      if (worker->events[i].events & EPOLLIN) {
-        conn->readable = 1;
-      }
-
-      if (worker->events[i].events & EPOLLOUT) {
-        conn->writable = 1;
-      }
-
-      if (handle_connection(worker, conn, fd) < 0) {
-        /* If not the last connection... */
-        if (conn->index + 1 < nconnections) {
-          worker->fds[conn->index] = worker->fds[nconnections - 1];
-          connections[worker->fds[nconnections - 1]].index = conn->index;
+        for (; nconnections > 0; nconnections--) {
+          close(worker->fds[nconnections - 1]);
         }
 
-        /* Clear connection. */
-        connection_clear(conn);
+        worker->errors += (worker->nconnections - nconnections);
 
-        /* Close connection. */
+        return -1;
+      }
+
+      /* Add file descriptor to epoll. */
+      ev.events = EPOLLRDHUP | EPOLLET | worker->options->set_read_write_event ?
+                                           EPOLLIN | EPOLLOUT :
+                                           EPOLLOUT;
+
+      ev.data.u64 = fd;
+
+      if (epoll_ctl(worker->epfd, EPOLL_CTL_ADD, fd, &ev) < 0) {
+        worker->duration = stopwatch_stop(&stopwatch);
+
         close(fd);
 
-        nconnections--;
+        for (; nconnections > 0; nconnections--) {
+          close(worker->fds[nconnections - 1]);
+        }
+
+        worker->errors += (worker->nconnections - nconnections);
+
+        return -1;
+      }
+
+      /* Save file descriptor. */
+      worker->fds[nconnections] = fd;
+
+      /* Set connection's state. */
+      connections[fd].state = STATE_CONNECTING;
+
+      /* Set connection's index. */
+      connections[fd].index = nconnections;
+    }
+
+    while ((*(worker->running)) && (nconnections > 0)) {
+      /* Wait for events. */
+      nevents = epoll_wait(worker->epfd, worker->events, maxevents, 1000);
+
+      /* Process events. */
+      for (i = 0; i < nevents; i++) {
+        fd = worker->events[i].data.fd;
+        conn = &connections[fd];
+
+        if (worker->events[i].events & EPOLLIN) {
+          conn->readable = 1;
+        }
+
+        if (worker->events[i].events & EPOLLOUT) {
+          conn->writable = 1;
+        }
+
+        if (handle_connection(worker, conn, fd) < 0) {
+          /* If not the last connection... */
+          if (conn->index + 1 < nconnections) {
+            worker->fds[conn->index] = worker->fds[nconnections - 1];
+            connections[worker->fds[nconnections - 1]].index = conn->index;
+          }
+
+          /* Clear connection. */
+          connection_clear(conn);
+
+          /* Close connection. */
+          close(fd);
+
+          nconnections--;
+        }
       }
     }
   }
@@ -498,7 +506,7 @@ int handle_connection(worker_t* worker, connection_t* conn, int fd)
               /* Last file? */
               if (++conn->nfile == conn->options->files.used) {
                 /* Last loop? */
-                if (++conn->nloops == conn->options->nloops) {
+                if (++conn->nloops == conn->options->number_connection_loops) {
                   /* We are done with this connection. */
                   return -1;
                 }
@@ -523,7 +531,7 @@ int handle_connection(worker_t* worker, connection_t* conn, int fd)
             /* Last file? */
             if (++conn->nfile == conn->options->files.used) {
               /* Last loop? */
-              if (++conn->nloops == conn->options->nloops) {
+              if (++conn->nloops == conn->options->number_connection_loops) {
                 /* We are done with this connection. */
                 return -1;
               }
@@ -591,7 +599,7 @@ int handle_connection(worker_t* worker, connection_t* conn, int fd)
             /* Last file? */
             if (++conn->nfile == conn->options->files.used) {
               /* Last loop? */
-              if (++conn->nloops == conn->options->nloops) {
+              if (++conn->nloops == conn->options->number_connection_loops) {
                 /* We are done with this connection. */
                 return -1;
               }

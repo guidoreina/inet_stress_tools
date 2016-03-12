@@ -100,11 +100,18 @@ void usage(const char* program)
          MIN_RECEIVE,
          MAX_RECEIVE,
          DEFAULT_RECEIVE);
-  printf("\t\t--loops <count>:\n");
-  printf("\t\t\tNumber of iterations send/receive (range: %llu - %llu\n",
+  printf("\t\t--thread-loops <count>:\n");
+  printf("\t\t\tNumber of iterations per thread\n");
+  printf("\t\t\t(range: %llu - %llu, default: %llu).\n",
          MIN_LOOPS,
-         MAX_LOOPS);
-  printf("\t\t\tdefault: %llu).\n", DEFAULT_LOOPS);
+         MAX_LOOPS,
+         DEFAULT_LOOPS);
+  printf("\t\t--connection-loops <count>:\n");
+  printf("\t\t\tNumber of iterations send/receive per connection\n");
+  printf("\t\t\t(range: %llu - %llu, default: %llu).\n",
+         MIN_LOOPS,
+         MAX_LOOPS,
+         DEFAULT_LOOPS);
   printf("\t\t--client-sends-first | --server-sends-first:\n");
   printf("\t\t\tWho sends data first? (default: %s).\n",
          CLIENT_SENDS_FIRST ? "--client-sends-first" : "--server-sends-first");

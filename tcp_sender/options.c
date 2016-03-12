@@ -13,7 +13,8 @@ int options_parse(int argc, const char** argv, options_t* options)
   options->nconnections = DEFAULT_CONNECTIONS;
   options->nthreads = DEFAULT_THREADS;
   options->receive = DEFAULT_RECEIVE;
-  options->nloops = DEFAULT_LOOPS;
+  options->number_thread_loops = DEFAULT_LOOPS;
+  options->number_connection_loops = DEFAULT_LOOPS;
   options->client_sends_first = CLIENT_SENDS_FIRST;
   options->set_read_write_event = SET_READ_WRITE_EVENT;
   options->nprocessors = 0;
@@ -73,7 +74,7 @@ int options_parse(int argc, const char** argv, options_t* options)
       options->receive = (unsigned) val;
 
       i += 2;
-    } else if (strcasecmp(argv[i], "--loops") == 0) {
+    } else if (strcasecmp(argv[i], "--thread-loops") == 0) {
       /* Last parameter? */
       if (i + 1 == argc) {
         files_free(&options->files);
@@ -83,7 +84,23 @@ int options_parse(int argc, const char** argv, options_t* options)
       if (parse_uint64(argv[i + 1],
                        MIN_LOOPS,
                        MAX_LOOPS,
-                       &options->nloops) < 0) {
+                       &options->number_thread_loops) < 0) {
+        files_free(&options->files);
+        return -1;
+      }
+
+      i += 2;
+    } else if (strcasecmp(argv[i], "--connection-loops") == 0) {
+      /* Last parameter? */
+      if (i + 1 == argc) {
+        files_free(&options->files);
+        return -1;
+      }
+
+      if (parse_uint64(argv[i + 1],
+                       MIN_LOOPS,
+                       MAX_LOOPS,
+                       &options->number_connection_loops) < 0) {
         files_free(&options->files);
         return -1;
       }
