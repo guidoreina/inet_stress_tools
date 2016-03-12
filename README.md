@@ -16,9 +16,12 @@ Usage: ./bin/tcp_sender [OPTIONS] <address>
     --connections <count> (range: 1 - 32768, default: 1).
     --threads <count> (range: 1 - 32, default: 1).
     --receive <count>: number of bytes to receive (range: 0 - 32768, default: 0).
-    --loops <count>:
-      Number of iterations send/receive (range: 1 - 18446744073709551615
-      default: 1).
+    --thread-loops <count>:
+      Number of iterations per thread
+      (range: 1 - 18446744073709551615, default: 1).
+    --connection-loops <count>:
+      Number of iterations send/receive per connection
+      (range: 1 - 18446744073709551615, default: 1).
     --client-sends-first | --server-sends-first:
       Who sends data first? (default: --client-sends-first).
     --set-read-write-event | --do-not-set-read-write-event:
