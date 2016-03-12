@@ -332,6 +332,7 @@ int worker_loop(worker_t* worker)
     }
   }
 
+  nconnections = 0;
   connections = worker->connections->connections;
   maxevents = worker->connections->nconnections;
 
