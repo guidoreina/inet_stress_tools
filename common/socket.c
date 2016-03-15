@@ -211,6 +211,19 @@ ssize_t socket_recv(int fd, void* buf, size_t len)
 
 int socket_bind(int fd, const struct sockaddr* addr, socklen_t addrlen)
 {
+  /* Reuse address. */
+  int optval = 1;
+  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)) < 0) {
+    return -1;
+  }
+
+#ifdef SO_REUSEPORT
+  /* Reuse port. */
+  if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(int)) < 0) {
+    return -1;
+  }
+#endif /* SO_REUSEPORT */
+
   return bind(fd, addr, addrlen);
 }
 
