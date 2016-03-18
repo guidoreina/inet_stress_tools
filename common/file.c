@@ -43,6 +43,10 @@ int files_add(files_t* files, const char* filename)
     return -1;
   }
 
+  if (buf.st_size == 0) {
+    return 0;
+  }
+
   if (allocate(files) < 0) {
     return -1;
   }
