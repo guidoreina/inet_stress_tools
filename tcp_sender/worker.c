@@ -399,6 +399,11 @@ int worker_loop(worker_t* worker)
         fd = worker->events[i].data.fd;
         conn = &connections[fd];
 
+        /* If the connection has been already closed... */
+        if (conn->state == STATE_NOT_CONNECTED) {
+          continue;
+        }
+
         if (worker->events[i].events & EPOLLIN) {
           conn->readable = 1;
         }
