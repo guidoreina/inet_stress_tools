@@ -360,9 +360,11 @@ int worker_loop(worker_t* worker)
       }
 
       /* Add file descriptor to epoll. */
-      ev.events = EPOLLRDHUP | EPOLLET | worker->options->set_read_write_event ?
-                                           EPOLLIN | EPOLLOUT :
-                                           EPOLLOUT;
+      if (worker->options->set_read_write_event) {
+        ev.events = EPOLLRDHUP | EPOLLET | EPOLLIN | EPOLLOUT;
+      } else {
+        ev.events = EPOLLRDHUP | EPOLLET | EPOLLOUT;
+      }
 
       ev.data.u64 = fd;
 
