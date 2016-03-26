@@ -614,33 +614,20 @@ int handle_connection(worker_t* worker, connection_t* conn, int fd)
 
               conn->nfile = 0;
             }
-
-            if (!worker->options->set_read_write_event) {
-              /* Modify file descriptor in epoll. */
-              ev.events = EPOLLRDHUP | EPOLLET | EPOLLOUT;
-              ev.data.u64 = fd;
-
-              if (epoll_ctl(worker->epfd, EPOLL_CTL_MOD, fd, &ev) < 0) {
-                worker->errors++;
-                return -1;
-              }
-            }
-
-            conn->state = STATE_SENDING;
-          } else {
-            if (!worker->options->set_read_write_event) {
-              /* Modify file descriptor in epoll. */
-              ev.events = EPOLLRDHUP | EPOLLET | EPOLLOUT;
-              ev.data.u64 = fd;
-
-              if (epoll_ctl(worker->epfd, EPOLL_CTL_MOD, fd, &ev) < 0) {
-                worker->errors++;
-                return -1;
-              }
-            }
-
-            conn->state = STATE_SENDING;
           }
+
+          if (!worker->options->set_read_write_event) {
+            /* Modify file descriptor in epoll. */
+            ev.events = EPOLLRDHUP | EPOLLET | EPOLLOUT;
+            ev.data.u64 = fd;
+
+            if (epoll_ctl(worker->epfd, EPOLL_CTL_MOD, fd, &ev) < 0) {
+              worker->errors++;
+              return -1;
+            }
+          }
+
+          conn->state = STATE_SENDING;
 
           /* Reset number of bytes received. */
           conn->received = 0;
