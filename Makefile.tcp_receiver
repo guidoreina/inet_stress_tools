@@ -1,0 +1,34 @@
+CC=gcc
+CXXFLAGS=-g -Wall -pedantic -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Wno-long-long -I.
+
+LDFLAGS=
+LIBS=-lpthread -lrt
+
+MAKEDEPEND=${CC} -MM
+PROGRAM=bin/tcp_receiver
+
+OBJS = common/socket.o common/util.o common/stopwatch.o common/processors.o \
+       common/file.o tcp_receiver/options.o tcp_receiver/connection.o \
+       tcp_receiver/worker.o tcp_receiver/tcp_receiver.o
+
+DEPS:= ${OBJS:%.o=%.d}
+
+all: $(PROGRAM)
+
+${PROGRAM}: ${OBJS}
+	${CC} ${CXXFLAGS} ${LDFLAGS} ${OBJS} ${LIBS} -o $@
+
+clean:
+	rm -f ${PROGRAM} ${OBJS} ${DEPS}
+
+${OBJS} ${DEPS} ${PROGRAM} : Makefile.tcp_receiver
+
+.PHONY : all clean
+
+%.d : %.c
+	${MAKEDEPEND} ${CXXFLAGS} $< -MT ${@:%.d=%.o} > $@
+
+%.o : %.c
+	${CC} ${CXXFLAGS} -c -o $@ $<
+
+-include ${DEPS}
