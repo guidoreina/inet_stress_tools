@@ -2,8 +2,10 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <poll.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
+#include <sys/syscall.h>
 #include <errno.h>
 #include "common/socket.h"
 #include "common/macros.h"
@@ -209,6 +211,27 @@ ssize_t socket_recv(int fd, void* buf, size_t len)
   return ret;
 }
 
+int socket_sendmmsg(int fd, struct mmsghdr* msgvec, unsigned vlen)
+{
+  int ret;
+  while (((ret = syscall(__NR_sendmmsg, fd, msgvec, vlen, MSG_NOSIGNAL)) < 0) &&
+         (errno == EINTR));
+
+  return ret;
+}
+
+int socket_recvmmsg(int fd,
+                    struct mmsghdr* msgvec,
+                    unsigned vlen,
+                    struct timespec* timeout)
+{
+  int ret;
+  while (((ret = recvmmsg(fd, msgvec, vlen, 0, timeout)) < 0) &&
+         (errno == EINTR));
+
+  return ret;
+}
+
 int socket_bind(int fd, const struct sockaddr* addr, socklen_t addrlen)
 {
   /* Reuse address. */
@@ -265,4 +288,26 @@ int socket_create(int domain, int type)
   }
 
   return fd;
+}
+
+int socket_wait_readable(int fd, int timeout)
+{
+  struct pollfd pollfd;
+
+  pollfd.fd = fd;
+  pollfd.events = POLLRDHUP | POLLIN;
+  pollfd.revents = 0;
+
+  return poll(&pollfd, 1, timeout);
+}
+
+int socket_wait_writable(int fd, int timeout)
+{
+  struct pollfd pollfd;
+
+  pollfd.fd = fd;
+  pollfd.events = POLLRDHUP | POLLOUT;
+  pollfd.revents = 0;
+
+  return poll(&pollfd, 1, timeout);
 }
