@@ -1,7 +1,7 @@
 Internet stress tools
 =====================
 
-Internet stress tools are a set of stress tools for TCP/UDP (at the moment only a TCP sender and TCP receiver). It runs under Linux.
+Internet stress tools are a set of stress tools for TCP/UDP (at the moment a TCP sender, a TCP receiver and a UDP sender). It runs under Linux.
 
 ## tcp\_sender
 `tcp_sender` can be used to create and handle many concurrent TCP connections divided between a small number of threads.
@@ -61,4 +61,23 @@ Usage: bin/tcp_receiver [OPTIONS] <address>
 		--processors <processor-list> | "even" | "odd".
 			<processor-list> ::= <processor>[,<processor>]*
 		--file <filename>: file to be sent. --file <filename> can be used multiple times.
+```
+
+## udp\_sender
+`udp_sender` can be used to send many UDP messages divided between a small number of threads.
+
+```
+Usage: bin/udp_sender [OPTIONS] <address>
+  <address>: socket address where to send messages to. Possible formats:
+    <host>:<port>: IPv4/IPv6 address and port.
+    Unix socket: Unix socket as absolute path.
+
+  Options:
+    --messages-per-send <count> (range: 1 - 4294967295, default: 1).
+    --sends <count> (range: 1 - 18446744073709551615, default: 1).
+    --threads <count> (range: 1 - 32, default: 1).
+    --processors <processor-list> | "even" | "odd".
+      <processor-list> ::= <processor>[,<processor>]*
+    --file <filename>: file to be sent. --file <filename> can be used multiple times.
+      If not specified, a dummy file of 1400 bytes is sent.
 ```
