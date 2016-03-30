@@ -16,6 +16,10 @@
 #define MAX_SENDS                 ULLONG_MAX
 #define DEFAULT_SENDS             1llu
 
+#define MIN_DELAY                 0
+#define MAX_DELAY                 1000000
+#define DEFAULT_DELAY             0
+
 #define MIN_THREADS               1
 #define MAX_THREADS               32
 #define DEFAULT_THREADS           1
@@ -23,6 +27,7 @@
 typedef struct {
   unsigned number_messages_per_send;
   uint64_t number_sends;
+  unsigned delay;
   unsigned nthreads;
 
   unsigned processors[MAX_PROCESSORS];

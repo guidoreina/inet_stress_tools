@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
+#include <errno.h>
 #include "common/util.h"
 #include "common/macros.h"
 
@@ -225,4 +227,22 @@ const char* transfer_speed_as_string(float bytes_per_second)
   }
 
   return buf[idx];
+}
+
+int delay(unsigned usec)
+{
+  struct timespec req, rem;
+
+  req.tv_sec = usec / 1000000;
+  req.tv_nsec = (usec % 1000000) * 1000l;
+
+  while (nanosleep(&req, &rem) < 0) {
+    if (errno == EINTR) {
+      req = rem;
+    } else {
+      return -1;
+    }
+  }
+
+  return 0;
 }

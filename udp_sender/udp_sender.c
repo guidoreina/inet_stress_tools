@@ -82,6 +82,10 @@ void usage(const char* program)
          MIN_SENDS,
          MAX_SENDS,
          DEFAULT_SENDS);
+  printf("\t\t--delay <microseconds> (range: %u - %u, default: %u).\n",
+         MIN_DELAY,
+         MAX_DELAY,
+         DEFAULT_DELAY);
   printf("\t\t--threads <count> (range: %u - %u, default: %u).\n",
          MIN_THREADS,
          MAX_THREADS,

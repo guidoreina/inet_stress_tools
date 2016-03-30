@@ -75,6 +75,7 @@ Usage: bin/udp_sender [OPTIONS] <address>
   Options:
     --messages-per-send <count> (range: 1 - 4294967295, default: 1).
     --sends <count> (range: 1 - 18446744073709551615, default: 1).
+    --delay <microseconds> (range: 0 - 1000000, default: 0).
     --threads <count> (range: 1 - 32, default: 1).
     --processors <processor-list> | "even" | "odd".
       <processor-list> ::= <processor>[,<processor>]*

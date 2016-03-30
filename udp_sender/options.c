@@ -13,6 +13,7 @@ int options_parse(int argc, const char** argv, options_t* options)
   /* Initialize options to default values. */
   options->number_messages_per_send = DEFAULT_MESSAGES_PER_SEND;
   options->number_sends = DEFAULT_SENDS;
+  options->delay = DEFAULT_DELAY;
   options->nthreads = DEFAULT_THREADS;
   options->nprocessors = 0;
 
@@ -55,6 +56,24 @@ int options_parse(int argc, const char** argv, options_t* options)
         files_free(&options->files);
         return -1;
       }
+
+      i += 2;
+    } else if (strcasecmp(argv[i], "--delay") == 0) {
+      /* Last parameter? */
+      if (i + 1 == argc) {
+        files_free(&options->files);
+        return -1;
+      }
+
+      if (parse_uint64(argv[i + 1],
+                       MIN_DELAY,
+                       MAX_DELAY,
+                       &val) < 0) {
+        files_free(&options->files);
+        return -1;
+      }
+
+      options->delay = (unsigned) val;
 
       i += 2;
     } else if (strcasecmp(argv[i], "--threads") == 0) {

@@ -302,12 +302,13 @@ void workers_statistics(const workers_t* workers)
   for (i = 0; i < workers->nworkers; i++) {
     worker = &workers->workers[i];
 
-    printf("Worker %u: sends: %lu, sent: %lu message%s (%lu byte%s), %s, "
-           "TX: %s, duration: %s.\n",
+    printf("Worker %u: sends: %lu, sent: %lu packet%s (%.2f pkt/s, "
+           "%lu byte%s), %s, TX: %s, duration: %s.\n",
            worker->id + 1,
            worker->nsends,
            worker->nmsgs,
            (worker->nmsgs != 1) ? "s" : "",
+           ((float) worker->nmsgs * 1000000.0) / (float) worker->duration,
            worker->sent,
            (worker->sent != 1) ? "s" : "",
            worker->error ? "error" : "no errors",
@@ -327,9 +328,10 @@ void workers_statistics(const workers_t* workers)
 
   printf("Duration: %s.\n", duration_as_string(duration));
 
-  printf("Sent: %lu message%s (%lu byte%s [%s]).\n",
+  printf("Sent: %lu packet%s (%.2f pkt/s, %lu byte%s [%s]).\n",
          count,
          (count != 1) ? "s" : "",
+         ((float) count * 1000000.0) / (float) duration,
          sent,
          (sent != 1) ? "s" : "",
          transfer_speed_as_string(tx_speed));
@@ -406,6 +408,12 @@ int worker_loop(worker_t* worker)
           return -1;
         }
       } else {
+        if ((worker->options->delay > 0) &&
+            (*(worker->running)) &&
+            (sent + 1 < worker->nsends)) {
+          delay(worker->options->delay);
+        }
+
         worker->nmsgs += ret;
 
         for (i = 0; i < ret; i++) {

@@ -23,4 +23,6 @@ static inline float compute_transfer_speed(uint64_t transferred,
 
 const char* transfer_speed_as_string(float bytes_per_second);
 
+int delay(unsigned usec);
+
 #endif /* UTIL_H */
