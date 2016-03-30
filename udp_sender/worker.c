@@ -288,11 +288,13 @@ void workers_join(workers_t* workers, uint8_t* running)
 void workers_statistics(const workers_t* workers)
 {
   const worker_t* worker;
+  uint64_t count;
   uint64_t sent;
   suseconds_t duration;
   float tx_speed;
   unsigned i;
 
+  count = 0;
   sent = 0;
   duration = 0;
   tx_speed = 0.0;
@@ -313,6 +315,7 @@ void workers_statistics(const workers_t* workers)
                                                            worker->duration)),
            duration_as_string(worker->duration));
 
+    count += worker->nmsgs;
     sent += worker->sent;
 
     tx_speed += (((float) worker->sent / (float) worker->duration) * 1000000.0);
@@ -324,7 +327,9 @@ void workers_statistics(const workers_t* workers)
 
   printf("Duration: %s.\n", duration_as_string(duration));
 
-  printf("Sent: %lu byte%s (%s).\n",
+  printf("Sent: %lu message%s (%lu byte%s [%s]).\n",
+         count,
+         (count != 1) ? "s" : "",
          sent,
          (sent != 1) ? "s" : "",
          transfer_speed_as_string(tx_speed));
