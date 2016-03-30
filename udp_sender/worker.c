@@ -21,9 +21,9 @@ int workers_create(const struct sockaddr* addr,
   struct mmsghdr* hdr;
   unsigned nworkers;
   uint64_t nsends_per_worker, diff;
-  unsigned i;
+  unsigned i, k;
   uint64_t idx;
-  size_t j, k;
+  size_t j;
 
   if (pthread_mutex_init(&workers->mutex, NULL) != 0) {
     return -1;
