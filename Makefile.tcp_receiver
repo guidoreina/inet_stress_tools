@@ -7,9 +7,9 @@ LIBS=-lpthread -lrt
 MAKEDEPEND=${CC} -MM
 PROGRAM=bin/tcp_receiver
 
-OBJS = common/socket.o common/util.o common/stopwatch.o common/processors.o \
-       common/file.o tcp_receiver/options.o tcp_receiver/connection.o \
-       tcp_receiver/worker.o tcp_receiver/tcp_receiver.o
+OBJS = common/socket.o common/util.o common/processors.o common/file.o \
+       tcp_receiver/options.o tcp_receiver/connection.o tcp_receiver/worker.o \
+       tcp_receiver/tcp_receiver.o
 
 DEPS:= ${OBJS:%.o=%.d}
 
