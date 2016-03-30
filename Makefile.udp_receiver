@@ -1,0 +1,34 @@
+CC=gcc
+CXXFLAGS=-g -Wall -pedantic -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Wno-long-long -I.
+
+LDFLAGS=
+LIBS=-lpthread -lrt
+
+MAKEDEPEND=${CC} -MM
+PROGRAM=bin/udp_receiver
+
+OBJS = common/socket.o common/util.o common/processors.o \
+       udp_receiver/options.o udp_receiver/worker.o \
+       udp_receiver/udp_receiver.o
+
+DEPS:= ${OBJS:%.o=%.d}
+
+all: $(PROGRAM)
+
+${PROGRAM}: ${OBJS}
+	${CC} ${CXXFLAGS} ${LDFLAGS} ${OBJS} ${LIBS} -o $@
+
+clean:
+	rm -f ${PROGRAM} ${OBJS} ${DEPS}
+
+${OBJS} ${DEPS} ${PROGRAM} : Makefile.udp_receiver
+
+.PHONY : all clean
+
+%.d : %.c
+	${MAKEDEPEND} ${CXXFLAGS} $< -MT ${@:%.d=%.o} > $@
+
+%.o : %.c
+	${CC} ${CXXFLAGS} -c -o $@ $<
+
+-include ${DEPS}
